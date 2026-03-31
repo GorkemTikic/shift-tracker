@@ -1,5 +1,6 @@
 import React from 'react';
 import { useShiftData } from '../context/ShiftContext';
+import { useAuth } from '../context/AuthContext';
 import { getTodayDateString } from '../utils/timeHelpers';
 import { cn } from '../utils/cn';
 import { Calendar, FileText, History } from 'lucide-react';
@@ -10,14 +11,16 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
-  const { data, activeDate, setActiveDate } = useShiftData();
+  const { activeDate, setActiveDate } = useShiftData();
+  const { logout, user } = useAuth();
   const dateInputRef = React.useRef<HTMLInputElement>(null);
   const today = getTodayDateString();
 
   // Group dates by month-year
-  // date format: YYYY-MM-DD
+  // Since we removed local data iteration here, we can use the context's data
+  // But wait, `data` from ShiftContext is needed for sidebar timeline
+  const { data } = useShiftData();
   const monthlyGroups: Record<string, string[]> = {};
-  
   const allDates = Array.from(new Set([...Object.keys(data), today])).sort().reverse(); // new to old
 
   allDates.forEach(d => {
@@ -134,6 +137,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-slate-700/50">
+        <div className="text-xs text-slate-500 font-mono mb-2 px-2 truncate">
+          {user?.email}
+        </div>
+        <button 
+          onClick={() => logout()}
+          className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-xl text-sm font-bold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors border border-transparent hover:border-rose-500/20"
+        >
+          Sign Out
+        </button>
       </div>
     </div>
   );

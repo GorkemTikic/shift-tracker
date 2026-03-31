@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { ShiftProvider } from './context/ShiftContext';
 import { Sidebar } from './components/Sidebar';
 import { DashboardHeader } from './components/DashboardHeader';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthScreen } from './components/AuthScreen';
 import { SegmentList } from './components/SegmentList';
 import { HistoryPage } from './components/HistoryPage';
 import { ExportModal } from './components/ExportModal';
@@ -71,11 +73,33 @@ const AppContent: React.FC = () => {
   );
 };
 
-function App() {
+const AuthRouter: React.FC = () => {
+  const { user, loading } = useAuth();
+  
+  if (loading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-slate-950">
+        <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  
+  if (!user) {
+    return <AuthScreen />;
+  }
+
   return (
     <ShiftProvider>
       <AppContent />
     </ShiftProvider>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <AuthRouter />
+    </AuthProvider>
   );
 }
 

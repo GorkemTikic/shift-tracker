@@ -1,5 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
+import { useAuth } from './AuthContext';
 import type { Segment, ShiftData } from '../types';
 import { getTodayDateString } from '../utils/timeHelpers';
 
@@ -17,23 +20,44 @@ interface ShiftContextType {
 
 const ShiftContext = createContext<ShiftContextType | undefined>(undefined);
 
-const STORAGE_KEY = 't_shift_pro_data';
-
 export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [data, setData] = useState<ShiftData>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : {};
-    } catch {
-      return {};
-    }
-  });
+  const { user } = useAuth();
+  const [data, setData] = useState<ShiftData>({});
+  const isInitialLoad = useRef(true);
 
   const [activeDate, setActiveDate] = useState<string>(getTodayDateString());
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data]);
+    if (!user) {
+      setData({});
+      return;
+    }
+    const fetchDb = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        if (snap.exists() && snap.data().shiftData) {
+          setData(snap.data().shiftData);
+        }
+      } catch (e) {
+        console.error("DB Fetch Error", e);
+      } finally {
+        setTimeout(() => { isInitialLoad.current = false; }, 500);
+      }
+    };
+    fetchDb();
+  }, [user]);
+
+  useEffect(() => {
+    if (isInitialLoad.current || !user) return;
+    const saveDb = async () => {
+      try {
+        await setDoc(doc(db, 'users', user.uid), { shiftData: data }, { merge: true });
+      } catch (e) {
+        console.error("DB Save Error", e);
+      }
+    };
+    saveDb();
+  }, [data, user]);
 
   const addSegment = (date: string) => {
     setData((prev: ShiftData) => {

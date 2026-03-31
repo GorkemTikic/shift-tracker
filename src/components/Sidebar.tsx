@@ -2,7 +2,7 @@ import React from 'react';
 import { useShiftData } from '../context/ShiftContext';
 import { getTodayDateString } from '../utils/timeHelpers';
 import { cn } from '../utils/cn';
-import { Calendar, FileText, Plus } from 'lucide-react';
+import { Calendar, FileText } from 'lucide-react';
 
 interface SidebarProps {
   view: 'dashboard' | 'history';

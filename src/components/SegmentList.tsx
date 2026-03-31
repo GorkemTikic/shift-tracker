@@ -1,11 +1,18 @@
 import React from 'react';
 import { useShiftData } from '../context/ShiftContext';
 import { SegmentRow } from './SegmentRow';
-import { Plus, Coffee } from 'lucide-react';
+import { Plus, Coffee, Check, Save } from 'lucide-react';
 import { cn } from '../utils/cn';
 
 export const SegmentList: React.FC = () => {
   const { data, activeDate, addSegment, updateSegment, deleteSegment, toggleOffDay } = useShiftData();
+  const [justSaved, setJustSaved] = React.useState(false);
+
+  const handleSave = () => {
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 2000);
+  };
+
   const dayData = data[activeDate];
   const segments = dayData?.segments || [];
   const isOffDay = dayData?.isOffDay || false;
@@ -86,6 +93,33 @@ export const SegmentList: React.FC = () => {
           </div>
           </button>
         </div>
+
+        {segments.length > 0 && (
+          <div className="mt-4 flex justify-end relative z-0 animate-in fade-in">
+            <button
+              onClick={handleSave}
+              disabled={justSaved}
+              className={cn(
+                "flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold transition-all shadow-md",
+                justSaved 
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10 cursor-default" 
+                  : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:text-white"
+              )}
+            >
+              {justSaved ? (
+                <>
+                  <Check className="w-5 h-5 drop-shadow-sm" />
+                  Saved to Cloud
+                </>
+              ) : (
+                <>
+                  <Save className="w-5 h-5 opacity-70" />
+                  Done & Save
+                </>
+              )}
+            </button>
+          </div>
+        )}
         </>
       )}
     </div>

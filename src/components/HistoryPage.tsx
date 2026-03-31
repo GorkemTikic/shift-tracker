@@ -77,7 +77,7 @@ export const HistoryPage: React.FC<HistoryProps> = ({ setView }) => {
 
         {/* Accordion Body: Day Cards */}
         {isExpanded && (
-          <div className="p-5 border-t border-slate-700/50 bg-slate-900/50 space-y-3">
+          <div className="p-5 border-t border-slate-700/50 bg-slate-900/50 space-y-3 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent pr-2">
             {[...group.dayKeys].sort().map(dKey => {
               const dayData = data[dKey];
               const dObj = new Date(dKey);

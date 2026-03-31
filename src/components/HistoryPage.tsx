@@ -33,7 +33,7 @@ export const HistoryPage: React.FC<HistoryProps> = ({ setView }) => {
     const isExpanded = expandedGroup === group.id;
 
     return (
-      <div key={group.id} className="glass-card bg-slate-800/40 rounded-2xl border border-slate-700 transition-all overflow-hidden">
+      <div key={group.id} className="break-inside-avoid mb-4 glass-card bg-slate-800/40 rounded-2xl border border-slate-700 transition-all overflow-hidden relative">
         {/* Accordion Header */}
         <div 
           onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
@@ -142,7 +142,7 @@ export const HistoryPage: React.FC<HistoryProps> = ({ setView }) => {
         {weeks.length === 0 ? (
           <p className="text-slate-500 px-2">No robust week data recorded yet. Start logging!</p>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="columns-1 md:columns-2 gap-4">
             {weeks.map(renderGroup)}
           </div>
         )}
@@ -153,7 +153,7 @@ export const HistoryPage: React.FC<HistoryProps> = ({ setView }) => {
         {months.length === 0 ? (
           <p className="text-slate-500 px-2">No month data recorded yet.</p>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className="columns-1 md:columns-2 gap-4">
             {months.map(renderGroup)}
           </div>
         )}

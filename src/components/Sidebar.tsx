@@ -2,7 +2,7 @@ import React from 'react';
 import { useShiftData } from '../context/ShiftContext';
 import { getTodayDateString } from '../utils/timeHelpers';
 import { cn } from '../utils/cn';
-import { Calendar, FileText } from 'lucide-react';
+import { Calendar, FileText, History } from 'lucide-react';
 
 interface SidebarProps {
   view: 'dashboard' | 'history';
@@ -64,6 +64,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
           <FileText className="w-5 h-5" />
           History & Reports
         </button>
+
+        <div className="relative mt-2 pt-2 border-t border-slate-800">
+          <button 
+            className="w-full flex items-center justify-start gap-3 py-2.5 px-4 rounded-xl font-semibold transition-all hover:bg-slate-800 text-slate-300"
+          >
+            <History className="w-5 h-5" />
+            Log Past Shift
+          </button>
+          <input 
+            type="date"
+            className="absolute inset-0 opacity-0 cursor-pointer"
+            onChange={(e) => {
+              if(e.target.value) {
+                setView('dashboard');
+                setActiveDate(e.target.value);
+              }
+            }}
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto pr-2 space-y-6">

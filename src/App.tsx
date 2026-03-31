@@ -60,7 +60,7 @@ const AppContent: React.FC = () => {
               <SegmentList />
             </>
           ) : (
-            <HistoryPage />
+            <HistoryPage setView={setView} />
           )}
         </div>
       </main>

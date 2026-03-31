@@ -3,12 +3,18 @@ import { useShiftData } from '../context/ShiftContext';
 import { aggregateData, type ReportGroup } from '../utils/historyHelpers';
 import { generateAggregateReport } from '../utils/exportHelpers';
 import { minsToHm } from '../utils/timeHelpers';
-import { Calendar, Download, FileText } from 'lucide-react';
+import { Calendar, Download, FileText, ChevronDown, Edit3, Coffee } from 'lucide-react';
 import { ExportModal } from './ExportModal';
+import { cn } from '../utils/cn';
 
-export const HistoryPage: React.FC = () => {
-  const { data } = useShiftData();
+interface HistoryProps {
+  setView: (v: 'dashboard' | 'history') => void;
+}
+
+export const HistoryPage: React.FC<HistoryProps> = ({ setView }) => {
+  const { data, setActiveDate } = useShiftData();
   const [modalGroup, setModalGroup] = useState<ReportGroup | null>(null);
+  const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
   const { weeks, months } = useMemo(() => aggregateData(data), [data]);
 
@@ -23,41 +29,94 @@ export const HistoryPage: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  const renderGroup = (group: ReportGroup) => (
-    <div key={group.id} className="glass-card bg-slate-800/40 p-5 rounded-2xl border border-slate-700 hover:border-slate-600 transition-all group relative">
-      <div className="flex justify-between items-start mb-4">
-        <div>
-          <h4 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-indigo-400" />
-            {group.title}
-          </h4>
-          <p className="text-sm text-slate-400 mt-1">{group.dayKeys.length} days logged</p>
-        </div>
-        <button
-          onClick={() => setModalGroup(group)}
-          className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg text-sm font-medium transition-colors border border-indigo-500/20"
-        >
-          <FileText className="w-4 h-4" />
-          Report
-        </button>
-      </div>
+  const renderGroup = (group: ReportGroup) => {
+    const isExpanded = expandedGroup === group.id;
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Productive Time</span>
-          <span className="text-2xl font-black text-emerald-400 font-mono tracking-tight drop-shadow-sm">
-            {minsToHm(group.stats.productiveMins)} <span className="text-sm text-emerald-500">hrs</span>
-          </span>
+    return (
+      <div key={group.id} className="glass-card bg-slate-800/40 rounded-2xl border border-slate-700 transition-all overflow-hidden">
+        {/* Accordion Header */}
+        <div 
+          onClick={() => setExpandedGroup(isExpanded ? null : group.id)}
+          className="p-5 cursor-pointer hover:bg-slate-700/30 transition-colors"
+        >
+          <div className="flex justify-between items-start mb-4">
+            <div>
+              <h4 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                <Calendar className="w-5 h-5 text-indigo-400" />
+                {group.title}
+              </h4>
+              <p className="text-sm text-slate-400 mt-1">{group.dayKeys.length} days logged</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={(e) => { e.stopPropagation(); setModalGroup(group); }}
+                className="flex items-center gap-2 px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg text-sm font-medium transition-colors border border-indigo-500/20"
+              >
+                <FileText className="w-4 h-4" />
+                Report
+              </button>
+              <ChevronDown className={cn("w-5 h-5 text-slate-500 transition-transform", isExpanded ? "rotate-180" : "")} />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Productive Time</span>
+              <span className="text-2xl font-black text-emerald-400 font-mono tracking-tight drop-shadow-sm">
+                {minsToHm(group.stats.productiveMins)} <span className="text-sm text-emerald-500">hrs</span>
+              </span>
+            </div>
+            <div>
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Total Logged</span>
+              <span className="text-2xl font-black text-slate-100 font-mono tracking-tight drop-shadow-sm">
+                {minsToHm(group.stats.totalMins)} <span className="text-sm text-slate-400">hrs</span>
+              </span>
+            </div>
+          </div>
         </div>
-        <div>
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider block mb-1">Total Logged</span>
-          <span className="text-2xl font-black text-slate-100 font-mono tracking-tight drop-shadow-sm">
-            {minsToHm(group.stats.totalMins)} <span className="text-sm text-slate-400">hrs</span>
-          </span>
-        </div>
+
+        {/* Accordion Body: Day Cards */}
+        {isExpanded && (
+          <div className="p-5 border-t border-slate-700/50 bg-slate-900/50 space-y-3">
+            {[...group.dayKeys].sort().map(dKey => {
+              const dayData = data[dKey];
+              const dObj = new Date(dKey);
+              const isOffDay = dayData?.isOffDay;
+              
+              return (
+                <div key={dKey} className="flex justify-between items-center bg-slate-800/80 p-4 rounded-xl border border-slate-700/50 hover:border-slate-600 transition-colors">
+                  <div>
+                    <h5 className="font-bold text-slate-200">
+                      {dObj.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' })}
+                    </h5>
+                    {isOffDay ? (
+                      <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1 mt-1">
+                        <Coffee className="w-3 h-3" /> Off-Day
+                      </span>
+                    ) : (
+                      <span className="text-xs text-slate-400 mt-1 block">
+                        {dayData?.segments?.length || 0} segments logged
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => {
+                      setActiveDate(dKey);
+                      setView('dashboard');
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-600"
+                  >
+                    <Edit3 className="w-4 h-4" />
+                    Edit
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-8 pb-12 animate-in fade-in zoom-in-95 duration-300">
@@ -83,7 +142,7 @@ export const HistoryPage: React.FC = () => {
         {weeks.length === 0 ? (
           <p className="text-slate-500 px-2">No robust week data recorded yet. Start logging!</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             {weeks.map(renderGroup)}
           </div>
         )}
@@ -94,7 +153,7 @@ export const HistoryPage: React.FC = () => {
         {months.length === 0 ? (
           <p className="text-slate-500 px-2">No month data recorded yet.</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-4">
+          <div className="flex flex-col gap-4">
             {months.map(renderGroup)}
           </div>
         )}

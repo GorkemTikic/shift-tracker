@@ -10,6 +10,7 @@ interface ShiftContextType {
   addSegment: (date: string) => void;
   updateSegment: (date: string, segmentId: string, updates: Partial<Segment>) => void;
   deleteSegment: (date: string, segmentId: string) => void;
+  toggleOffDay: (date: string, isOff: boolean) => void;
   importData: (jsonStr: string) => boolean;
   exportData: () => string;
 }
@@ -44,11 +45,6 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         const lastSegment = currentSegments[currentSegments.length - 1];
         startTime = lastSegment.endTime;
       }
-      
-      // Default duration is 15 minutes, or just 15:00-15:15
-      // Wait, end time can default to start time to force user to enter it, or 15 mins later
-      // But we will make endTime empty so user chooses, or just equal to startTime.
-      // Let's make it equal to startTime so it prompts selection
       
       const newSegment: Segment = {
         id: uuidv4(),
@@ -99,6 +95,16 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
+  const toggleOffDay = (date: string, isOff: boolean) => {
+    setData((prev: ShiftData) => {
+      const dayData = prev[date] || { date, segments: [] };
+      return {
+        ...prev,
+        [date]: { ...dayData, isOffDay: isOff, segments: isOff ? [] : dayData.segments }
+      };
+    });
+  };
+
   const importData = (jsonStr: string) => {
     try {
       const parsed = JSON.parse(jsonStr);
@@ -119,7 +125,7 @@ export const ShiftProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <ShiftContext.Provider value={{
-      data, activeDate, setActiveDate, addSegment, updateSegment, deleteSegment, importData, exportData
+      data, activeDate, setActiveDate, addSegment, updateSegment, deleteSegment, toggleOffDay, importData, exportData
     }}>
       {children}
     </ShiftContext.Provider>

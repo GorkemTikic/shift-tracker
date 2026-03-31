@@ -1,23 +1,55 @@
 import React from 'react';
 import { useShiftData } from '../context/ShiftContext';
 import { SegmentRow } from './SegmentRow';
-import { Plus } from 'lucide-react';
+import { Plus, Coffee } from 'lucide-react';
+import { cn } from '../utils/cn';
 
 export const SegmentList: React.FC = () => {
-  const { data, activeDate, addSegment, updateSegment, deleteSegment } = useShiftData();
+  const { data, activeDate, addSegment, updateSegment, deleteSegment, toggleOffDay } = useShiftData();
   const dayData = data[activeDate];
   const segments = dayData?.segments || [];
+  const isOffDay = dayData?.isOffDay || false;
 
   return (
     <div className="flex-1 w-full max-w-4xl mx-auto flex flex-col space-y-2">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-slate-200">Shift Segments</h3>
-        <span className="text-sm font-medium text-slate-500 bg-slate-800 px-3 py-1 rounded-full border border-slate-700">
-          {segments.length} entries
-        </span>
+        <div className="flex gap-3 items-center">
+          {!isOffDay && (
+            <span className="text-sm font-medium text-slate-500 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700">
+              {segments.length} entries
+            </span>
+          )}
+          <button
+            onClick={() => {
+              if (!isOffDay && segments.length > 0) {
+                if(!confirm("Marking as Off-Day will clear your current segments. Continue?")) return;
+              }
+              toggleOffDay(activeDate, !isOffDay);
+            }}
+            className={cn(
+              "px-4 py-1.5 rounded-xl text-sm font-bold transition-all border shadow-sm",
+              isOffDay 
+                ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30 shadow-emerald-500/10" 
+                : "bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700 hover:text-slate-200"
+            )}
+          >
+            {isOffDay ? "🟢 Off-Day Active" : "Mark as Off-Day"}
+          </button>
+        </div>
       </div>
 
-      {segments.length === 0 ? (
+      {isOffDay ? (
+        <div className="flex flex-col items-center justify-center p-12 mt-8 text-center glass-card rounded-3xl border border-emerald-500/20 bg-emerald-900/10 animate-in fade-in zoom-in-95">
+          <div className="w-20 h-20 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 shadow-inner border border-emerald-500/20">
+            <Coffee className="w-10 h-10 text-emerald-400" />
+          </div>
+          <p className="text-emerald-400 font-extrabold text-2xl mb-2 tracking-tight">You took the day off!</p>
+          <p className="text-emerald-500/70 text-sm max-w-sm">Enjoy your well-deserved break. This date will be explicitly marked as an 'Off-Day' in your historical reports.</p>
+        </div>
+      ) : (
+        <>
+          {segments.length === 0 ? (
         <div className="flex flex-col items-center justify-center p-12 text-center glass-card rounded-3xl border border-dashed border-slate-600/50">
           <div className="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mb-4 shadow-inner">
             <Plus className="w-8 h-8 text-slate-600" />
@@ -52,8 +84,10 @@ export const SegmentList: React.FC = () => {
               Log Activity
             </span>
           </div>
-        </button>
-      </div>
+          </button>
+        </div>
+        </>
+      )}
     </div>
   );
 };

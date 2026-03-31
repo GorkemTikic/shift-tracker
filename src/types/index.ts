@@ -31,6 +31,7 @@ export interface Segment {
 
 export interface DayEntry {
   date: string; // Format "YYYY-MM-DD"
+  isOffDay?: boolean;
   segments: Segment[];
 }
 

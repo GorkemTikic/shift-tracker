@@ -13,20 +13,26 @@ export function generateAggregateReport(group: ReportGroup, data: ShiftData): st
 
   const daysText = sortedKeys.map(dateStr => {
     const dayData = data[dateStr];
-    // If a day was created but zero segments logged, skip it
-    if (!dayData?.segments || dayData.segments.length === 0) return null;
+    // If a day was created but zero segments logged and it's not an off day, skip it
+    if ((!dayData?.segments || dayData.segments.length === 0) && !dayData?.isOffDay) return null;
 
-    const segmentsText = dayData.segments.map((seg: any) => {
-      let timeText = seg.startTime === seg.endTime 
-        ? seg.startTime 
-        : `${seg.startTime} - ${seg.endTime}`;
-      let text = `  ${timeText} - ${seg.category}`;
-      if (seg.notes) text += ` (${seg.notes})`;
-      return text;
-    }).join('\n');
-    
     const d = new Date(dateStr);
     const dateTitle = `• ${d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', timeZone: 'UTC' })}`;
+
+    let segmentsText = "";
+
+    if (dayData.isOffDay) {
+      segmentsText = "  [Off-Day]";
+    } else {
+      segmentsText = dayData.segments.map((seg: any) => {
+        let timeText = seg.startTime === seg.endTime 
+          ? seg.startTime 
+          : `${seg.startTime} - ${seg.endTime}`;
+        let text = `  ${timeText} - ${seg.category}`;
+        if (seg.notes) text += ` (${seg.notes})`;
+        return text;
+      }).join('\n');
+    }
     
     return `${dateTitle}\n${segmentsText}`;
   }).filter(Boolean).join('\n\n');

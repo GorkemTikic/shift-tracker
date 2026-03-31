@@ -4,9 +4,11 @@ import { X, Copy, Check } from 'lucide-react';
 
 interface Props {
   onClose: () => void;
+  overrideText?: string;
+  overrideTitle?: string;
 }
 
-export const ExportModal: React.FC<Props> = ({ onClose }) => {
+export const ExportModal: React.FC<Props> = ({ onClose, overrideText, overrideTitle }) => {
   const { data, activeDate } = useShiftData();
   const [copied, setCopied] = useState(false);
   
@@ -28,7 +30,8 @@ export const ExportModal: React.FC<Props> = ({ onClose }) => {
     return text;
   }).join('\n');
   
-  const finalReport = `${dateStr}\n\n${segmentsText}`;
+  const finalReport = overrideText ?? `${dateStr}\n\n${segmentsText}`;
+  const modalTitle = overrideTitle ?? dateStr;
 
   const copyToClipboard = () => {
     navigator.clipboard.writeText(finalReport);
@@ -58,7 +61,7 @@ export const ExportModal: React.FC<Props> = ({ onClose }) => {
         
         <div className="p-6 space-y-6">
           <p className="text-slate-400 text-sm">
-            Here is your smart summary for <strong>{dateStr}</strong>. Ready to be pasted into Teams or Slack.
+            Here is your smart summary for <strong>{modalTitle}</strong>. Ready to be pasted into Teams or Slack.
           </p>
           
           <div className="p-4 bg-slate-900/50 rounded-xl border border-slate-700/50 shadow-inner">

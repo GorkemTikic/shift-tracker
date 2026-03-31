@@ -3,6 +3,7 @@ import { ShiftProvider } from './context/ShiftContext';
 import { Sidebar } from './components/Sidebar';
 import { DashboardHeader } from './components/DashboardHeader';
 import { SegmentList } from './components/SegmentList';
+import { HistoryPage } from './components/HistoryPage';
 import { ExportModal } from './components/ExportModal';
 import { Menu, X } from 'lucide-react';
 import { cn } from './utils/cn';
@@ -10,6 +11,7 @@ import { cn } from './utils/cn';
 const AppContent: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [exportModalOpen, setExportModalOpen] = useState(false);
+  const [view, setView] = useState<'dashboard' | 'history'>('dashboard');
 
   return (
     <div className="flex h-screen w-full overflow-hidden bg-slate-950 font-sans text-slate-100 selection:bg-indigo-500/30">
@@ -38,7 +40,7 @@ const AppContent: React.FC = () => {
         "absolute md:relative z-30 h-full transition-transform duration-300 ease-in-out md:translate-x-0",
         mobileMenuOpen ? "translate-x-0 w-3/4 sm:w-1/2 max-w-sm" : "-translate-x-full md:block"
       )}>
-        <Sidebar />
+        <Sidebar view={view} setView={(v) => { setView(v); setMobileMenuOpen(false); }} />
       </div>
 
       {/* Mobile menu backdrop */}
@@ -52,8 +54,14 @@ const AppContent: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 h-full w-full relative z-10 overflow-y-auto pt-20 md:pt-0 pb-12 px-4 md:px-8">
         <div className="max-w-6xl mx-auto h-full flex flex-col mt-4 md:mt-8">
-          <DashboardHeader onExport={() => setExportModalOpen(true)} />
-          <SegmentList />
+          {view === 'dashboard' ? (
+            <>
+              <DashboardHeader onExport={() => setExportModalOpen(true)} />
+              <SegmentList />
+            </>
+          ) : (
+            <HistoryPage />
+          )}
         </div>
       </main>
 

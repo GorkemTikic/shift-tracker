@@ -11,6 +11,7 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
   const { data, activeDate, setActiveDate } = useShiftData();
+  const dateInputRef = React.useRef<HTMLInputElement>(null);
   const today = getTodayDateString();
 
   // Group dates by month-year
@@ -67,18 +68,30 @@ export const Sidebar: React.FC<SidebarProps> = ({ view, setView }) => {
 
         <div className="relative mt-2 pt-2 border-t border-slate-800">
           <button 
+            onClick={() => {
+              try {
+                dateInputRef.current?.showPicker();
+              } catch (e) {
+                // Fallback for older browsers
+                dateInputRef.current?.focus();
+              }
+            }}
             className="w-full flex items-center justify-start gap-3 py-2.5 px-4 rounded-xl font-semibold transition-all hover:bg-slate-800 text-slate-300"
           >
             <History className="w-5 h-5" />
             Log Past Shift
           </button>
           <input 
+            ref={dateInputRef}
             type="date"
-            className="absolute inset-0 opacity-0 cursor-pointer"
+            className="absolute w-0 h-0 opacity-0 -z-10"
+            style={{ pointerEvents: 'none' }}
             onChange={(e) => {
               if(e.target.value) {
                 setView('dashboard');
                 setActiveDate(e.target.value);
+                // Reset input value so same date can be picked again if needed
+                e.target.value = '';
               }
             }}
           />
